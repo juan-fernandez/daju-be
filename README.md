@@ -1,13 +1,12 @@
-clone or download the repository
+Clone or download the repository
 
-
-execute
-
-
+```
 npm install
+```
 
-
+```
 node index.js
+```
 
-
-Your game is available in localhost:3000
+Your game is available in your browser under  http://localhost:3000
+Connect more tabs/browsers under http://localhost:3000 and see the changes live
