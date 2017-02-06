@@ -20,8 +20,8 @@ function onConnection(socket){
         return {
             id:socket.id,
             pos:{
-                x:Math.floor((Math.random() * 450) + 1),
-                y:Math.floor((Math.random() * 450) + 1)
+                x:0,//x:Math.floor((Math.random() * 450) + 1),
+                y:0,//y:Math.floor((Math.random() * 450) + 1)
             },
             size:{
                 width:PLAYER_WIDTH,
@@ -30,7 +30,7 @@ function onConnection(socket){
         }
     };
     // collision avoiding when creating new player
-    while(true){
+    /*while(true){
         var player_new = new_player();
         players.push(new_player());
         if(!collisionDetector({socket_id:player_new.id,vel_x:0,vel_y:0})){
@@ -45,7 +45,9 @@ function onConnection(socket){
             players.splice(index,1);
         }
         console.log("recreating")
-    }
+    }*/
+    var player_new = new_player();
+    players.push(player_new);
 
     console.log("New player created:",player_new);
 
@@ -91,6 +93,7 @@ io.on('connection', onConnection);
 // collision detector. true if collision, false otherweise
 function collisionDetector(movement){
     // check border collisions
+    return false;
     var index = players.findIndex((player)=>{
         return player.id == movement.socket_id;
     })
