@@ -46,7 +46,7 @@ $(function() {
     var player_ids = [];
 
 
-    setInterval(movePlayer, 50);
+    setInterval(movePlayer, 20);
 
     function movePlayer() {
         var movement = {
@@ -96,16 +96,20 @@ $(function() {
                 var signHor = player.pos.x - $("#"+player.id).position().left > 0;
                 var symbolHor = signHor ? "-":"+";
                 var valueHor = Math.abs(player.pos.x - $("#"+player.id).position().left);
-
-                $("#"+player.id).animate({right: symbolHor+"="+valueHor+"px"}, 0);
-
+                if(valueHor != 0){
+                    $("#"+player.id).animate({right: symbolHor+"="+valueHor+"px"}, 0);
+                }
                 var signVer = player.pos.y - $("#"+player.id).position().top > 0;
 
                 var symbolVer = signVer ? "+":"-";
                 console.log("symbol:",symbolVer);
+
                 var valueVer = Math.abs(player.pos.y - $("#"+player.id).position().top);
                 console.log("valueVer:",valueVer);
-                $("#"+player.id).animate({top: symbolVer+"="+valueVer+"px"}, 0);
+                if(valueVer != 0){
+                    $("#"+player.id).animate({top: symbolVer+"="+valueVer+"px"}, 0);
+                }
+
             }
         })
 
