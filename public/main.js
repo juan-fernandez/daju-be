@@ -12,10 +12,12 @@ $(function() {
 
     socket.on('connect', function() {
         myId = socket.id;
+
     });
 
 
     socket.on('new user', function(new_player, players) {
+        console.log("new user");
         updateSquares(players);
     });
 
@@ -39,19 +41,12 @@ $(function() {
     });
     var keys = {};
 
-    var previous_players_state = [{
-        id:myId,
-        pos:{
-            x:0,
-            y:0
-        },
-        size:{
-            width:50,
-            height:50
-        }
-    }];
 
-    setInterval(movePlayer, 20);
+    //to check ids
+    var player_ids = [];
+
+
+    setInterval(movePlayer, 50);
 
     function movePlayer() {
         var movement = {
@@ -65,115 +60,55 @@ $(function() {
             if (direction == 37) {
                 movement.vel_x = -5;
                 socket.emit('moving', movement);
-                /*if (($("#player").position().left-5) >= 0) {
-                    //socket.emit('moving', {left: "-=5"});
-                    $("#player").animate({left: "-=5"}, 0);
-                }*/
+
             }
             if (direction == 38) {
-                movement.vel_y = 5;
+                movement.vel_y = -5;
                 socket.emit('moving', movement);
-                /*if (($("#player").position().top-5) >= 0) {
-                    socket.emit('moving', {top: "-=5"});
-                    $("#player").animate({top: "-=5"}, 0);
-                }*/
+
             }
             if (direction == 39) {
                 movement.vel_x = 5;
                 socket.emit('moving', movement);
-                /*if (($("#player").position().left+5) <= 450) {
-                    //socket.emit('moving', {left: "+=5"});
-                    $("#player").animate({left: "+=5"}, 0);
-                }*/
+
             }
             if (direction == 40) {
-                movement.vel_y = -5;
+                movement.vel_y = 5;
                 socket.emit('moving', movement);
-                /*if (($("#player").position().top+5) <= 450) {
-                    //socket.emit('moving', {top: "+=5"});
-                    $("#player").animate({top: "+=5"}, 0);
-                }*/
+
             }
         }
     }
 
-
-/*
-
-    $(window).keydown(function(event){
-        var movement = {
-                socket_id: myId,
-                vel_x: 0,
-                vel_y: 0
-            };
-
-        if (event.which === 39) { //right
-            console.log('right ->');
-            movement.vel_x = 20;
-            socket.emit('moving', movement);
-        }
-
-        if (event.which === 37) { //left
-            console.log('<- left');
-            movement.vel_x = -20;
-            socket.emit('moving', movement);
-        }
-
-        if (event.which === 38) { //up
-            console.log('up ^');
-            movement.vel_y = -20;
-            socket.emit('moving', movement);
-        }
-
-        if (event.which === 40) { //down
-            console.log('down \\/');
-            movement.vel_y = 20;
-            socket.emit('moving', movement);
-        }
-    });
-*/
     function updateSquares(players) {
-        console.log("recieved players",players);
-        console.log("previous state",previous_players_state[0]);
-        console.log("difference", players[0].pos.x-previous_players_state[0].pos.x );
-
 
         $.each(players, function(i, player) {
-            var sign = player.pos.x - previous_players_state[0].pos.x > 0;
-            var symbol = sign ? "-":"+";
-            var value = Math.abs(player.pos.x - previous_players_state[0].pos.x);
+            console.log("player:",player);
+            if($.inArray(player.id,player_ids)==-1){
+                console.log("new player")
+                jQuery('<div/>',{
+                    class: 'player',
+                    id: player.id,
+                    style: "top:"+player.pos.y+"px;right:"+player.pos.x+"px"
+                }).appendTo(".container");
+                player_ids.push(player.id);
+            }else{
+                var signHor = player.pos.x - $("#"+player.id).position().left > 0;
+                var symbolHor = signHor ? "-":"+";
+                var valueHor = Math.abs(player.pos.x - $("#"+player.id).position().left);
 
-            // compare current state with received and animate
-            if(previous_players_state[0].pos.x != player.pos.x){
-                $("#player").animate({right: symbol+"="+value}, 0);
+                $("#"+player.id).animate({right: symbolHor+"="+valueHor+"px"}, 0);
+
+                var signVer = player.pos.y - $("#"+player.id).position().top > 0;
+
+                var symbolVer = signVer ? "+":"-";
+                console.log("symbol:",symbolVer);
+                var valueVer = Math.abs(player.pos.y - $("#"+player.id).position().top);
+                console.log("valueVer:",valueVer);
+                $("#"+player.id).animate({top: symbolVer+"="+valueVer+"px"}, 0);
             }
-
-            //$("#player").animate({top: "+=5"}, 0);
-
-            /*context.beginPath();
-            context.rect(player.pos.x, player.pos.y, width, length);
-            context.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
-            context.shadowColor = '#999';
-            context.shadowBlur = 10;
-            context.shadowOffsetX = 5;
-            context.shadowOffsetY = 5;
-            context.stroke();
-            context.closePath();*/
         })
-        previous_players_state = players;
 
-        /*context.clearRect(0,0,canvas.width,canvas.height);
 
-        $.each(players, function(i, player) {
-            context.beginPath();
-            context.rect(player.pos.x, player.pos.y, width, length);
-            context.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
-            context.shadowColor = '#999';
-            context.shadowBlur = 10;
-            context.shadowOffsetX = 5;
-            context.shadowOffsetY = 5;
-            context.stroke();
-            context.closePath();
-        });*/
     }
 });
