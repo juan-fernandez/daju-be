@@ -8,11 +8,11 @@ app.use(express.static(__dirname + '/public'));
 
 
 var players = [];
-var PLAYER_WIDTH = 50;
-var PLAYER_HEIGHT = 50;
+var PLAYER_WIDTH = 20;
+var PLAYER_HEIGHT = 20;
 
-var BOARD_WIDTH = 500;
-var BOARD_HEIGHT = 500;
+var BOARD_WIDTH = 300;
+var BOARD_HEIGHT = 300;
 
 function onConnection(socket){
 
@@ -20,8 +20,8 @@ function onConnection(socket){
         return {
             id:socket.id,
             pos:{
-                x:Math.floor((Math.random() * 450) + 1),
-                y:Math.floor((Math.random() * 450) + 1)
+                x:Math.floor((Math.random() * 280) + 1),
+                y:Math.floor((Math.random() * 280) + 1)
             },
             size:{
                 width:PLAYER_WIDTH,
@@ -34,7 +34,7 @@ function onConnection(socket){
         var player_new = new_player();
         players.push(player_new);
         if(!collisionDetector({socket_id:player_new.id,vel_x:0,vel_y:0})){
-            console.log("stop")
+            //console.log("stop")
             break;
         }
         var index = players.findIndex((player)=>{
@@ -69,7 +69,7 @@ function onConnection(socket){
                 socket.emit('moving',players) // to sender as well
                 socket.broadcast.emit('moving',players)
             }else{
-                console.log("collision found")
+                //console.log("collision found")
             }
         }
     })

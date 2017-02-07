@@ -1,12 +1,12 @@
 'use strict';
 
 $(function() {
-    var WIDTH = 50,
-        LENGTH = 50,
+    var WIDTH = 20,
+        LENGTH = 20,
         canvas = document.getElementById('game_board'),
         context = canvas.getContext('2d'),
-        url = 'https://daju.herokuapp.com/',
-        //url = 'http://localhost:3000',
+        //url = 'https://daju.herokuapp.com/',
+        url = 'http://alpha15:3000',
         socket = io(url),
         myId;
 
@@ -34,7 +34,7 @@ $(function() {
     });
 
     socket.on('moving', function(players) {
-        console.log("received moving",players);
+
         updateSquares(players);
     });
     var keys = {};
@@ -94,8 +94,16 @@ $(function() {
 
 
     function changeDirection(e){
+
+        // offsetX offsetY only works with mouse
         targetX = e.offsetX;
         targetY = e.offsetY;
+        if(e.changedTouches){
+            console.log("x:",e.changedTouches[0].clientX);
+            console.log("y:",e.changedTouches[0].clientY);
+            targetX = e.changedTouches[0].clientX;
+            targetY = e.changedTouches[0].clientY;
+        }
     }
 
 
@@ -113,6 +121,7 @@ $(function() {
                 vel_x: 0,
                 vel_y: 0
             };
+
         // 7 is roughly sqrt(5^2+5^2), which is the velocity with keyboard
         if(offsetX-my_position.pos.x > 0){ // right
             movement.vel_x = 7*Math.abs(offsetX-my_position.pos.x)/mod;
