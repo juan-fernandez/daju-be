@@ -15,6 +15,7 @@ $(function() {
 
     });
 
+    var interval_id = 0;
 
     socket.on('new user', function(new_player, players) {
         console.log("new user");
@@ -29,24 +30,33 @@ $(function() {
         console.log("received moving",players);
         updateSquares(players);
     });
+    var keys = {};
 
     $(document).keydown(function(e) {
-        console.log("DOWN keys:",keys);
+        if(interval_id == 0){
+            interval_id = setInterval(movePlayer, 20);
+            console.log("start interval",interval_id);
+        }
         keys[e.keyCode] = true;
     });
 
     $(document).keyup(function(e) {
-        console.log("UP keys:",keys);
         delete keys[e.keyCode];
+        console.log(Object.keys(keys).length)
+        if(Object.keys(keys).length == 0){
+            console.log("stops interval");
+            clearInterval(interval_id);
+            interval_id = 0;
+        }
     });
-    var keys = {};
+
 
 
     //to check ids
     var player_ids = [];
 
 
-    setInterval(movePlayer, 20);
+
 
     function movePlayer() {
         var movement = {
