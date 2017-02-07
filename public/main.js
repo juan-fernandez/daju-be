@@ -5,8 +5,8 @@ $(function() {
         LENGTH = 20,
         canvas = document.getElementById('game_board'),
         context = canvas.getContext('2d'),
-        //url = 'https://daju.herokuapp.com/',
-        url = 'http://alpha15:3000',
+        url = 'https://daju.herokuapp.com/',
+        //url = 'http://alpha15:3000',
         socket = io(url),
         myId;
 
