@@ -5,8 +5,8 @@ $(function() {
         length = 50,
         canvas = document.getElementById('game_board'),
         context = canvas.getContext('2d'),
-        //url = 'https://daju.herokuapp.com/',
-        url = 'http://localhost:3000',
+        url = 'https://daju.herokuapp.com/',
+        //url = 'http://localhost:3000',
         socket = io(url),
         myId;
 
@@ -31,12 +31,12 @@ $(function() {
     });
 
     $(document).keydown(function(e) {
-        console.log(keys);
+        console.log("DOWN keys:",keys);
         keys[e.keyCode] = true;
     });
 
     $(document).keyup(function(e) {
-        console.log(keys);
+        console.log("UP keys:",keys);
         delete keys[e.keyCode];
     });
     var keys = {};
@@ -59,24 +59,23 @@ $(function() {
             if (!keys.hasOwnProperty(direction)) continue;
             if (direction == 37) {
                 movement.vel_x = -5;
-                socket.emit('moving', movement);
-
+                //socket.emit('moving', movement);
             }
             if (direction == 38) {
                 movement.vel_y = -5;
-                socket.emit('moving', movement);
-
+                //socket.emit('moving', movement);
             }
             if (direction == 39) {
                 movement.vel_x = 5;
-                socket.emit('moving', movement);
-
+                //socket.emit('moving', movement);
             }
             if (direction == 40) {
                 movement.vel_y = 5;
-                socket.emit('moving', movement);
-
+                //socket.emit('moving', movement);
             }
+        }
+        if(movement.vel_x != 0 || movement.vel_y != 0){
+            socket.emit('moving', movement);
         }
     }
 
@@ -85,27 +84,29 @@ $(function() {
         $.each(players, function(i, player) {
             console.log("player:",player);
             if($.inArray(player.id,player_ids)==-1){
-                console.log("new player")
+
+                console.log("new player:",player)
                 jQuery('<div/>',{
                     class: 'player',
                     id: player.id,
-                    style: "top:"+player.pos.y+"px;right:"+player.pos.x+"px"
+                    style: "top:"+player.pos.y+"px;left:"+player.pos.x+"px"
                 }).appendTo(".container");
                 player_ids.push(player.id);
             }else{
                 var signHor = player.pos.x - $("#"+player.id).position().left > 0;
-                var symbolHor = signHor ? "-":"+";
+                var symbolHor = signHor ? "+":"-";
                 var valueHor = Math.abs(player.pos.x - $("#"+player.id).position().left);
+                console.log("RIGHT:",valueHor);
                 if(valueHor != 0){
-                    $("#"+player.id).animate({right: symbolHor+"="+valueHor+"px"}, 0);
+                    $("#"+player.id).animate({left: symbolHor+"="+valueHor+"px"}, 0);
                 }
                 var signVer = player.pos.y - $("#"+player.id).position().top > 0;
 
                 var symbolVer = signVer ? "+":"-";
-                console.log("symbol:",symbolVer);
+
 
                 var valueVer = Math.abs(player.pos.y - $("#"+player.id).position().top);
-                console.log("valueVer:",valueVer);
+                console.log("TOP:",valueVer);
                 if(valueVer != 0){
                     $("#"+player.id).animate({top: symbolVer+"="+valueVer+"px"}, 0);
                 }
