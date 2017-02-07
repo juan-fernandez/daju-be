@@ -1,12 +1,12 @@
 'use strict';
 
 $(function() {
-    var width = 50,
-        length = 50,
+    var WIDTH = 50,
+        LENGTH = 50,
         canvas = document.getElementById('game_board'),
         context = canvas.getContext('2d'),
-        url = 'https://daju.herokuapp.com/',
-        //url = 'http://localhost:3000',
+        //url = 'https://daju.herokuapp.com/',
+        url = 'http://localhost:3000',
         socket = io(url),
         myId;
 
@@ -58,19 +58,19 @@ $(function() {
         for (var direction in keys) {
             if (!keys.hasOwnProperty(direction)) continue;
             if (direction == 37) {
-                movement.vel_x = -5;
+                movement.vel_x += -5;
                 //socket.emit('moving', movement);
             }
             if (direction == 38) {
-                movement.vel_y = -5;
+                movement.vel_y += -5;
                 //socket.emit('moving', movement);
             }
             if (direction == 39) {
-                movement.vel_x = 5;
+                movement.vel_x += 5;
                 //socket.emit('moving', movement);
             }
             if (direction == 40) {
-                movement.vel_y = 5;
+                movement.vel_y += 5;
                 //socket.emit('moving', movement);
             }
         }
@@ -80,40 +80,23 @@ $(function() {
     }
 
     function updateSquares(players) {
+        context.clearRect(0,0,canvas.width,canvas.height);
 
         $.each(players, function(i, player) {
-            console.log("player:",player);
-            if($.inArray(player.id,player_ids)==-1){
+            //console.log("player:",player);
+            context.beginPath();
 
-                console.log("new player:",player)
-                jQuery('<div/>',{
-                    class: 'player',
-                    id: player.id,
-                    style: "top:"+player.pos.y+"px;left:"+player.pos.x+"px"
-                }).appendTo(".container");
-                player_ids.push(player.id);
-            }else{
-                var signHor = player.pos.x - $("#"+player.id).position().left > 0;
-                var symbolHor = signHor ? "+":"-";
-                var valueHor = Math.abs(player.pos.x - $("#"+player.id).position().left);
-                console.log("RIGHT:",valueHor);
-                if(valueHor != 0){
-                    $("#"+player.id).animate({left: symbolHor+"="+valueHor+"px"}, 0);
-                }
-                var signVer = player.pos.y - $("#"+player.id).position().top > 0;
-
-                var symbolVer = signVer ? "+":"-";
-
-
-                var valueVer = Math.abs(player.pos.y - $("#"+player.id).position().top);
-                console.log("TOP:",valueVer);
-                if(valueVer != 0){
-                    $("#"+player.id).animate({top: symbolVer+"="+valueVer+"px"}, 0);
-                }
-
-            }
+            context.rect(player.pos.x, player.pos.y, WIDTH, LENGTH);
+            //context.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+            context.shadowColor = '#999';
+            context.shadowBlur = 10;
+            context.shadowOffsetX = 5;
+            context.shadowOffsetY = 5;
+            context.stroke();
+            context.closePath();
         })
 
 
     }
+
 });
