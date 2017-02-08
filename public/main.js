@@ -5,8 +5,8 @@ $(function() {
         LENGTH = 20,
         canvas = document.getElementById('game_board'),
         context = canvas.getContext('2d'),
-        url = 'https://daju.herokuapp.com/',
-        //url = 'http://alpha15:3000',
+        //url = 'https://daju.herokuapp.com/',
+        url = 'http://alpha15:3000',
         socket = io(url),
         myId;
 
@@ -68,6 +68,7 @@ $(function() {
 
 
     function mousetouchdownListener(e){
+        e.preventDefault();
         changeDirection(e);
         if(interval_mouse == 0){
             interval_mouse = setInterval(function(){movePlayerMouse(targetX,targetY);},20);
@@ -77,6 +78,7 @@ $(function() {
     }
 
     function mousetouchupListener(e){
+        e.preventDefault();
         changeDirection(e);
         clearInterval(interval_mouse);
         interval_mouse = 0;
@@ -92,9 +94,39 @@ $(function() {
     canvas.addEventListener("touchend",mousetouchupListener)
 
 
+    window.ondevicemotion= function accelerometerUpdate(e) {
+       var aX = event.accelerationIncludingGravity.x*1;
+       var aY = event.accelerationIncludingGravity.y*1;
+       var aZ = event.accelerationIncludingGravity.z*1;
+       //The following two lines are just to calculate a
+       // tilt. Not really needed.
+       var xPosition = Math.atan2(aY, aZ);
+       var yPosition = Math.atan2(aX, aZ);
+       console.log(xPosition,yPosition);
+       //$("#value").text(xPosition+","+yPosition);
+
+        var movement = {
+                socket_id: myId,
+                vel_x: 0,
+                vel_y: 0
+            };
+        var factor = 3;
+       if(Math.abs(xPosition) > 0.1){
+           movement.vel_y = factor*xPosition;
+           //
+       }
+       if(Math.abs(yPosition) > 0.1){
+           movement.vel_x =  -factor*yPosition;
+       }
+       if(Math.abs(xPosition) > 0.1 || Math.abs(yPosition) > 0.1){
+           socket.emit('moving', movement);
+       }
+
+    }
+
 
     function changeDirection(e){
-
+        e.preventDefault();
         // offsetX offsetY only works with mouse
         targetX = e.offsetX;
         targetY = e.offsetY;
@@ -114,24 +146,30 @@ $(function() {
 
         var mod = Math.sqrt(x_dis+y_dis);
 
-        var ratio = x_dis/y_dis;
-
         var movement = {
                 socket_id: myId,
                 vel_x: 0,
                 vel_y: 0
             };
+        var factor = 7;
+        if(mod < 10){
+            factor=0.5;
+        }if(mod < 5){
+            factor= 0.1;
+        }if(mod < 1){
+            factor = 0;
+        }
 
         // 7 is roughly sqrt(5^2+5^2), which is the velocity with keyboard
         if(offsetX-my_position.pos.x > 0){ // right
-            movement.vel_x = 7*Math.abs(offsetX-my_position.pos.x)/mod;
+            movement.vel_x = factor*Math.abs(offsetX-my_position.pos.x)/mod;
         }else{ //left
-            movement.vel_x = -7*Math.abs(offsetX-my_position.pos.x)/mod;
+            movement.vel_x = -factor*Math.abs(offsetX-my_position.pos.x)/mod;
         }
         if(offsetY-my_position.pos.y > 0){ //down
-            movement.vel_y = 7*Math.abs(offsetY-my_position.pos.y)/mod;
+            movement.vel_y = factor*Math.abs(offsetY-my_position.pos.y)/mod;
         }else{
-            movement.vel_y = -7*Math.abs(offsetY-my_position.pos.y)/mod;
+            movement.vel_y = -factor*Math.abs(offsetY-my_position.pos.y)/mod;
         }
         socket.emit('moving', movement);
     }
