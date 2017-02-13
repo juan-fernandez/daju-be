@@ -121,7 +121,6 @@ $(function() {
                 vel_x: 0,
                 vel_y: 0
             };
-
         // 7 is roughly sqrt(5^2+5^2), which is the velocity with keyboard
         if(offsetX-my_position.pos.x > 0){ // right
             movement.vel_x = 7*Math.abs(offsetX-my_position.pos.x)/mod;
@@ -135,8 +134,6 @@ $(function() {
         }
         socket.emit('moving', movement);
     }
-
-
 
     function movePlayer() {
         var movement = {
