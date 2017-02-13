@@ -5,8 +5,8 @@ $(function() {
         LENGTH = 20,
         canvas = document.getElementById('game_board'),
         context = canvas.getContext('2d'),
-        url = 'https://daju.herokuapp.com/',
-        //url = 'http://alpha15:3000',
+        //url = 'https://daju.herokuapp.com/',
+        url = 'http://localhost:3000',
         socket = io(url),
         myId;
 
@@ -41,7 +41,7 @@ $(function() {
 
     $(document).keydown(function(e) {
         if(interval_id == 0){
-            interval_id = setInterval(movePlayer, 20);
+            interval_id = setInterval(movePlayerKeyboard, 20);
             console.log("start interval",interval_id);
         }
         keys[e.keyCode] = true;
@@ -68,6 +68,7 @@ $(function() {
 
 
     function mousetouchdownListener(e){
+        e.preventDefault();
         changeDirection(e);
         if(interval_mouse == 0){
             interval_mouse = setInterval(function(){movePlayerMouse(targetX,targetY);},20);
@@ -77,6 +78,7 @@ $(function() {
     }
 
     function mousetouchupListener(e){
+        e.preventDefault();
         changeDirection(e);
         clearInterval(interval_mouse);
         interval_mouse = 0;
@@ -92,50 +94,83 @@ $(function() {
     canvas.addEventListener("touchend",mousetouchupListener)
 
 
-
-    function changeDirection(e){
-
-        // offsetX offsetY only works with mouse
-        targetX = e.offsetX;
-        targetY = e.offsetY;
-        if(e.changedTouches){
-            console.log("x:",e.changedTouches[0].clientX);
-            console.log("y:",e.changedTouches[0].clientY);
-            targetX = e.changedTouches[0].clientX;
-            targetY = e.changedTouches[0].clientY;
-        }
-    }
-
-
-    function movePlayerMouse(offsetX,offsetY){
-        // calculate direction
-        var x_dis = Math.pow(offsetX-my_position.pos.x,2);
-        var y_dis = Math.pow(offsetY-my_position.pos.y,2);
-
-        var mod = Math.sqrt(x_dis+y_dis);
-
-        var ratio = x_dis/y_dis;
+    window.ondevicemotion= function accelerometerUpdate(e) {
+       var aX = event.accelerationIncludingGravity.x*1;
+       var aY = event.accelerationIncludingGravity.y*1;
+       var aZ = event.accelerationIncludingGravity.z*1;
+       //The following two lines are just to calculate a
+       // tilt. Not really needed.
+       var xPosition = Math.atan2(aY, aZ);
+       var yPosition = Math.atan2(aX, aZ);
+       console.log(xPosition,yPosition);
+       //$("#value").text(xPosition+","+yPosition);
 
         var movement = {
                 socket_id: myId,
                 vel_x: 0,
                 vel_y: 0
             };
-        // 7 is roughly sqrt(5^2+5^2), which is the velocity with keyboard
-        if(offsetX-my_position.pos.x > 0){ // right
-            movement.vel_x = 7*Math.abs(offsetX-my_position.pos.x)/mod;
-        }else{ //left
-            movement.vel_x = -7*Math.abs(offsetX-my_position.pos.x)/mod;
+        var factor = 3;
+       if(Math.abs(xPosition) > 0.1){
+           movement.vel_y = factor*xPosition;
+           //
+       }
+       if(Math.abs(yPosition) > 0.1){
+           movement.vel_x =  -factor*yPosition;
+       }
+       if(Math.abs(xPosition) > 0.1 || Math.abs(yPosition) > 0.1){
+           socket.emit('moving', movement);
+       }
+
+    }
+
+
+    function changeDirection(e){
+        e.preventDefault();
+
+        if(e.changedTouches){
+            console.log("x:",e.changedTouches[0].clientX);
+            console.log("y:",e.changedTouches[0].clientY);
+            targetX = e.changedTouches[0].clientX;
+            targetY = e.changedTouches[0].clientY;
+        } else {
+            // offsetX offsetY only works with mouse
+            targetX = e.offsetX;
+            targetY = e.offsetY;
         }
-        if(offsetY-my_position.pos.y > 0){ //down
-            movement.vel_y = 7*Math.abs(offsetY-my_position.pos.y)/mod;
-        }else{
-            movement.vel_y = -7*Math.abs(offsetY-my_position.pos.y)/mod;
+    }
+
+    function movePlayerMouse(offsetX, offsetY) {
+        var x_dis = Math.pow(offsetX-my_position.pos.x,2),
+            y_dis = Math.pow(offsetY-my_position.pos.y,2),
+            mod = Math.sqrt(x_dis+y_dis),
+            movement = {
+                socket_id: myId,
+                vel_x: 0,
+                vel_y: 0
+
+            },
+            factor = 1;
+
+        // If square is onto the mouse don't do anything
+        if (mod < 1) return;
+
+        if (offsetX-my_position.pos.x > 0) { // right
+            movement.vel_x = factor*Math.abs(offsetX-my_position.pos.x)/mod;
+        } else { // left
+            movement.vel_x = -factor*Math.abs(offsetX-my_position.pos.x)/mod;
         }
+        if (offsetY-my_position.pos.y > 0) { // down
+            movement.vel_y = factor*Math.abs(offsetY-my_position.pos.y)/mod;
+        } else { // up
+            movement.vel_y = -factor*Math.abs(offsetY-my_position.pos.y)/mod;
+        }
+
         socket.emit('moving', movement);
     }
 
-    function movePlayer() {
+
+    function movePlayerKeyboard() {
         var movement = {
                 socket_id: myId,
                 vel_x: 0,
@@ -170,11 +205,11 @@ $(function() {
                 my_position.pos = player.pos;
             }
 
-            //console.log("player:",player);
             context.beginPath();
 
             context.rect(player.pos.x, player.pos.y, WIDTH, LENGTH);
-            //context.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+            context.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+            context.fill();
             context.shadowColor = '#999';
             context.shadowBlur = 10;
             context.shadowOffsetX = 5;
@@ -182,8 +217,5 @@ $(function() {
             context.stroke();
             context.closePath();
         })
-
-
     }
-
 });
