@@ -33,7 +33,8 @@ function onConnection(socket){
     while(true){
         var player_new = new_player();
         players.push(player_new);
-        if(!collisionDetector({socket_id:player_new.id,vel_x:0,vel_y:0})){
+        var collision = collisionDetector({socket_id:player_new.id,vel_x:0,vel_y:0});
+        if(!collision.horizontal && !collision.vertical){
             //console.log("stop")
             break;
         }
@@ -54,25 +55,26 @@ function onConnection(socket){
     socket.broadcast.emit("new user",player_new,players);
 
 
-    socket.on('moving',(movement)=>{
+      socket.on('moving',(movement)=>{
 
-        // change user position
-        var index = players.findIndex((player)=>{
+         // change user position
+         var index = players.findIndex((player)=>{
             return player.id == movement.socket_id;
-        })
-        if(index!=-1){
+         })
+         if(index!=-1){
             var collision = collisionDetector(movement);
-            if(!collision){
-                players[index].pos.x += movement.vel_x;
-                players[index].pos.y += movement.vel_y;
-                //console.log("sending players:",players)
-                socket.emit('moving',players) // to sender as well
-                socket.broadcast.emit('moving',players)
-            }else{
-                //console.log("collision found")
+            console.log(collision);
+            if(!collision.horizontal){
+               players[index].pos.x += movement.vel_x;
             }
-        }
-    })
+            if(!collision.vertical){
+               players[index].pos.y += movement.vel_y;
+            }
+            //console.log("sending players:",players)
+            socket.emit('moving',players) // to sender as well
+            socket.broadcast.emit('moving',players)
+         }
+      })
     socket.on('disconnect',()=>{
         console.log("player disco:",socket.id)
         var index = players.findIndex((player)=>{
@@ -92,37 +94,55 @@ io.on('connection', onConnection);
 function collisionDetector(movement){
     // check border collisions
     //return false;
-    var index = players.findIndex((player)=>{
-        return player.id == movement.socket_id;
-    })
-    if(index==-1){
-        console.error("Player not found")
-        return true;
-    }
+   var collision = {
+      vertical: false, // it has a collision up or down
+      horizontal: false
+   }
+   var index = players.findIndex((player)=>{
+      return player.id == movement.socket_id;
+   })
+   if(index==-1){
+      console.error("Player not found")
+      return true;
+   }
 
-    if(players[index].pos.x+movement.vel_x < 0 || // left border
-       players[index].pos.x+movement.vel_x + PLAYER_WIDTH > BOARD_WIDTH || //right border
-       players[index].pos.y+movement.vel_y + PLAYER_HEIGHT > BOARD_HEIGHT || // bottom border
-       players[index].pos.y+movement.vel_y < 0) // upper border
-    {
-        return true;
-    }
+   if(players[index].pos.x+movement.vel_x < 0 || // left border
+      players[index].pos.x+movement.vel_x + PLAYER_WIDTH > BOARD_WIDTH ) // upper border
+   {
+      collision.horizontal = true;
+      //return collision;
+   }
+
+   if(players[index].pos.y+movement.vel_y + PLAYER_HEIGHT > BOARD_HEIGHT || // bottom border
+      players[index].pos.y+movement.vel_y < 0){ //right border
+      collision.vertical = true;
+      //return collision;
+   }
+
+
 
     // check player collisions
-    result = players.every((player)=>{
-        if(players[index].id != player.id){ // do not check with itself
+      result = players.every((player)=>{
+         if(players[index].id != player.id){ // do not check with itself
             var x_distance = Math.abs(players[index].pos.x+movement.vel_x - player.pos.x)
             var y_distance = Math.abs(players[index].pos.y+movement.vel_y - player.pos.y)
-            if( x_distance < PLAYER_WIDTH && y_distance < PLAYER_HEIGHT){
-                return false;
-            }else{
-                return true;
+            if(x_distance < PLAYER_WIDTH && y_distance < PLAYER_HEIGHT){
+               // we have now to look the original positions to know what intersection happened
+               if(Math.abs(players[index].pos.x - player.pos.x) < PLAYER_WIDTH){
+                  collision.vertical = true;
+                  return false;
+               }else if(Math.abs(players[index].pos.y - player.pos.y)<PLAYER_HEIGHT){
+                  collision.horizontal = true;
+                  return false;
+               }
             }
+
+            return true;
         }else{
             return true;
         }
     })
-    return !result;
+    return collision;
 }
 
 

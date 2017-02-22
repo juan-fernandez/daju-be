@@ -150,10 +150,10 @@ $(function() {
                 vel_y: 0
 
             },
-            factor = 1;
+            factor = 5;
 
         // If square is onto the mouse don't do anything
-        if (mod < 1) return;
+        if (mod < Math.sqrt(factor+1)) return;
 
         if (offsetX-my_position.pos.x > 0) { // right
             movement.vel_x = factor*Math.abs(offsetX-my_position.pos.x)/mod;
