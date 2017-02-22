@@ -63,7 +63,7 @@ function onConnection(socket){
          })
          if(index!=-1){
             var collision = collisionDetector(movement);
-            console.log(collision);
+            //console.log(collision);
             if(!collision.horizontal){
                players[index].pos.x += movement.vel_x;
             }
